@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, maximum-scale=0.9, user-scalable=0"
+    />
+    <title>Data Creator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="content">
+      <h1>Data Creator</h1>
+      <div id="inputs">
+        <input type="text" id="student" placeholder="Type your name" />
+        <span id="instructions"></span>
+        <button id="advanceBtn" onclick="start();">Start</button>
+      </div>
+      <br />
+      <div id="sketchPadContainer" style="visibility: hidden"></div>
+    </div>
+
+    <script src="../common/draw.js"></script>
+    <script src="js/sketchPad.js"></script>
+    <script>
+      let index = 0;
+      const labels = [
+        "car",
+        "fish",
+        "house",
+        "tree",
+        "bicycle",
+        "guitar",
+        "pencil",
+        "clock",
+      ];
+
+      const data = {
+        student: null,
+        session: new Date().getTime(),
+        drawings: {},
+      };
+
+      const sketchPad = new SketchPad(sketchPadContainer);
+
+      function updateInstructions() {
+        const label = labels[index];
+        instructions.textContent =
+          "Please Draw A " +
+          labels[index][0].toUpperCase() +
+          labels[index].slice(1);
+      }
+
+      function start() {
+        if (student.value == "") return;
+        sketchPadContainer.style.visibility = "visible";
+        student.style.display = "none";
+        data.student = student.data;
+        updateInstructions();
+        advanceBtn.textContent = "NEXT";
+        advanceBtn.onclick = next;
+      }
+
+      function next() {
+        if (sketchPad.paths.length == 0) {
+          return alert(
+            "Draw " + labels[index][0].toUpperCase() + labels[index].slice(1)
+          );
+        }
+        data.drawings[labels[index]] = sketchPad.paths;
+        sketchPad.reset();
+        index++;
+        if (index < labels.length) updateInstructions();
+        else {
+          sketchPadContainer.style.visibility = "hidden";
+          instructions.textContent = "Thanks!";
+          advanceBtn.innerHTML = "SAVE";
+          advanceBtn.onclick = save;
+        }
+      }
+      function save() {
+        advanceBtn.style.display = "none";
+
+        instructions.innerHTML =
+          "Take your downloaded file and place it alongside the others in the dataset!";
+
+        const element = document.createElement("a");
+        element.setAttribute(
+          "href",
+          "data:text/plain;charset=utf-8," +
+            encodeURIComponent(JSON.stringify(data))
+        );
+        const fileName = data.session + ".json";
+        element.setAttribute("download", fileName);
+        element.style.display = "none";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+    </script>
+  </body>
+</html>
